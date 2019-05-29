@@ -70,7 +70,6 @@ class SimulatedMotor(Device):
             Define your actions to be executed after instantiation.
         """
         self.state = State.ON
-        self.stopped = False
 
     @Slot(
         displayedName="Move",
@@ -87,16 +86,15 @@ class SimulatedMotor(Device):
         starting_position = self.actualPosition.value
         velocity = (self.targetPosition - self.actualPosition) / self.moveTime
         for i in range(int(self.moveTime.value)):
-            if self.stopped:
+            if self.state != State.MOVING:
                 break
             else:
                 self.actualPosition = starting_position + velocity * i
                 await sleep(1)
 
-        if not self.stopped:
+        if self.state == State.MOVING:
             await sleep(self.moveTime.value % 1)
             self.actualPosition = self.targetPosition.value
-        self.stopped = False
         self.state = State.ON
 
     @Slot(
@@ -105,5 +103,4 @@ class SimulatedMotor(Device):
         allowedStates=[State.MOVING]
     )
     async def stop(self):
-        self.stopped = True
         self.state = State.ON
