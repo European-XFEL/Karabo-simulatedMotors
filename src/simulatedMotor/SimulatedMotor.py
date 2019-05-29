@@ -9,8 +9,6 @@ from karabo.middlelayer import (AccessMode, background, Bool, Device, Float,
 
 
 class SimulatedMotor(Device):
-    movingTask = None
-
     interfaces = VectorString(
         displayedName="Interfaces",
         description="Describes the interfaces for this device",
@@ -83,7 +81,7 @@ class SimulatedMotor(Device):
     async def move(self):
         if self.targetPosition.value != self.actualPosition.value:
             self.state = State.MOVING
-            self.movingTask = background(self.moving_action)
+            background(self.moving_action)
 
     async def moving_action(self):
         starting_position = self.actualPosition.value
@@ -103,10 +101,9 @@ class SimulatedMotor(Device):
 
     @Slot(
         displayedName="Stop",
-        description="Stops the simulated motor"
+        description="Stops the simulated motor",
+        allowedStates=[State.MOVING]
     )
     async def stop(self):
-        if self.movingTask:
-            self.stopped = True
-            self.state = State.ON
-            self.movingTask = None
+        self.stopped = True
+        self.state = State.ON
