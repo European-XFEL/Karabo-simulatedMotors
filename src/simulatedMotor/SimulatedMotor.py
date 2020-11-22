@@ -4,11 +4,18 @@
 # Copyright (C) European XFEL GmbH Hamburg. All rights reserved.
 #############################################################################
 
-from karabo.middlelayer import (AccessMode, background, Bool, Device, Float,
-                                sleep, Slot, State, VectorString)
+from karabo.middlelayer import (
+    AccessMode, Bool, Device, Float, Slot, State, VectorString, background,
+    sleep
+)
+
+from ._version import version as deviceVersion
 
 
 class SimulatedMotor(Device):
+    # provide version for classVersion property
+    __version__ = deviceVersion
+
     interfaces = VectorString(
         displayedName="Interfaces",
         description="Describes the interfaces for this device",
