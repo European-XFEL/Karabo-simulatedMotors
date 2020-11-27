@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-import shutil
 from os.path import dirname, join, realpath
-
 from setuptools import find_packages, setup
+import shutil
 
 ROOT_FOLDER = dirname(realpath(__file__))
 VERSION_FILE_PATH = join(ROOT_FOLDER, '_version.py')
@@ -35,6 +34,5 @@ setup(name='SimulatedMotor',
 
 
 # copy to subpaths with Karabo class files
-
 shutil.copy(join(ROOT_FOLDER, '_version.py'),
             join(ROOT_FOLDER, "src/simulatedMotor"))
