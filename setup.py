@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-from os.path import dirname, join, realpath
-from setuptools import find_packages, setup
 import shutil
+from os.path import dirname, join, realpath
+
+from setuptools import find_packages, setup
 
 ROOT_FOLDER = dirname(realpath(__file__))
 VERSION_FILE_PATH = join(ROOT_FOLDER, '_version.py')
@@ -25,7 +26,10 @@ setup(name='SimulatedMotor',
       packages=find_packages('src'),
       entry_points={
           'karabo.middlelayer_device': [
-              'SimulatedMotor = simulatedMotor.SimulatedMotor:SimulatedMotor'
+              'SimulatedMotor = simulatedMotor.SimulatedMotor:SimulatedMotor',
+              'SimulatedBeckhoffMC2Base = simulatedMotor.SimulatedBeckhoffMC2Base:SimulatedBeckhoffMC2Base',
+              'SimulatedMultiAxisMotor = simulatedMotor.SimulatedMultiAxisMotor:SimulatedMultiAxisMotor',
+              'SimulatedX2TimerML = simulatedMotor.SimulatedX2TimerML:SimulatedX2TimerML'
           ],
       },
       package_data={},

@@ -1,15 +1,13 @@
 #############################################################################
 # Author: schaffer
 # Created on May, 2019, 10:37 AM
-# Copyright (C) European XFEL GmbH Hamburg. All rights reserved.
+# Copyright (C) European XFEL GmbH Schenefeld. All rights reserved.
 #############################################################################
 from contextlib import contextmanager
-import unittest
 
-from karabo.middlelayer_api.tests.eventloop import async_tst, DeviceTest
+from karabo.middlelayer_api.tests.eventloop import DeviceTest, async_tst
 
 from ..SimulatedMotor import SimulatedMotor
-
 
 conf = {
     "classId": "SimulatedMotor",
