@@ -1,12 +1,13 @@
 #############################################################################
 # Author: schaffer
 # Created on May, 2019, 10:37 AM
-# Copyright (C) European XFEL GmbH Hamburg. All rights reserved.
+# Copyright (C) European XFEL GmbH Schenefeld. All rights reserved.
 #############################################################################
+from asyncio import CancelledError
+
 from karabo.middlelayer import (
-    AccessMode, Bool, Device, Float, Slot, State, VectorString, background,
-    sleep
-)
+    AccessMode, Bool, Device, Float, Int32, MetricPrefix, Slot, State, Unit,
+    VectorString, background, sleep)
 
 from ._version import version as deviceVersion
 
@@ -25,13 +26,17 @@ class SimulatedMotor(Device):
         displayedName="Actual Position",
         description="Position of the simulated motor",
         defaultValue=0,
-        accessMode=AccessMode.READONLY
+        accessMode=AccessMode.READONLY,
+        unitSymbol=Unit.METER,
+        metricPrefixSymbol=MetricPrefix.MILLI
     )
 
     targetPosition = Float(
         displayedName="Target Position",
         description="Target position of the simulated motor",
-        defaultValue=0
+        defaultValue=0,
+        unitSymbol=Unit.METER,
+        metricPrefixSymbol=MetricPrefix.MILLI
     )
 
     isCWLimit = Bool(
@@ -58,14 +63,16 @@ class SimulatedMotor(Device):
         accessMode=AccessMode.READONLY
     )
 
-    moveTime = Float(
-        displayedName="Move time",
-        description="Time (in seconds) for the simulated motor to make a "
-                    "single move. This "
-                    "can be adjusted to set the time between adjacent scan "
-                    "points.",
-        defaultValue=1
-    )
+    steps = Int32(
+        displayedName="Steps",
+        description="Steps for internal movement",
+        defaultValue=2,
+        minInc=1)
+
+    updateRate = Float(
+        displayedName="Update Rate",
+        defaultValue=2,
+        unitSymbol=Unit.HERTZ)
 
     def __init__(self, configuration):
         super(SimulatedMotor, self).__init__(configuration)
@@ -86,22 +93,22 @@ class SimulatedMotor(Device):
     async def move(self):
         if self.targetPosition.value != self.actualPosition.value:
             self.state = State.MOVING
-            background(self.moving_action)
+            background(self.move_action)
 
-    async def moving_action(self):
-        starting_position = self.actualPosition.value
-        velocity = (self.targetPosition - self.actualPosition) / self.moveTime
-        for i in range(int(self.moveTime.value)):
-            if self.state != State.MOVING:
-                break
-            else:
-                self.actualPosition = starting_position + velocity * i
-                await sleep(1)
-
-        if self.state == State.MOVING:
-            await sleep(self.moveTime.value % 1)
-            self.actualPosition = self.targetPosition.value
-        self.state = State.ON
+    async def move_action(self):
+        try:
+            distance = self.targetPosition - self.actualPosition
+            step_size = distance / self.steps
+            for _ in range(self.steps):
+                if self.state == State.MOVING:
+                    self.actualPosition += step_size
+                    await sleep(1 / self.updateRate.value)
+                else:
+                    break
+        except CancelledError:
+            pass
+        finally:
+            self.state = State.ON
 
     @Slot(
         displayedName="Stop",
