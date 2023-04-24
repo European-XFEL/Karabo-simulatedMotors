@@ -9,7 +9,7 @@ from karabo.middlelayer import (
     AccessMode, Configurable, Device, Float, MetricPrefix, Node, QuantityValue,
     Slot, State, Unit, VectorString, background, unit)
 
-max_step = QuantityValue(0.001, unit.meter)
+DEFAULT_MAX_STEP = QuantityValue(0.001, unit.meter)
 
 
 class LinearAxis(Configurable):
@@ -100,7 +100,7 @@ class SimulatedMultiAxisMotor(Device):
             axis = getattr(self, axisName)
             axis.parent = self
             axis.move_task = None
-            axis.max_step = max_step
+            axis.max_step = DEFAULT_MAX_STEP
 
     def updateState(self):
         axes = [getattr(self, axis) for axis in self.axes]
