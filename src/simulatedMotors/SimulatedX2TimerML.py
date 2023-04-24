@@ -6,10 +6,8 @@
 from asyncio import CancelledError
 
 from karabo.middlelayer import (
-    Device, Float, Int32, MetricPrefix, Overwrite, QuantityValue, Slot, State,
-    Unit, background, sleep, unit)
-
-max_step = QuantityValue(0.001, unit.meter)
+    Device, Float, Int32, MetricPrefix, Overwrite, Slot, State, Unit,
+    background, sleep)
 
 
 class SimulatedX2TimerML(Device):

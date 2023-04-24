@@ -7,7 +7,7 @@ import os
 import os.path as op
 import subprocess
 
-import simulatedMotor
+import simulatedMotors
 
 BLACKLIST = ['setup.py', '__init__.py']
 
@@ -15,7 +15,7 @@ BLACKLIST = ['setup.py', '__init__.py']
 def get_python_files():
     """Get all python files from this package
     """
-    common_dir = op.abspath(op.dirname(simulatedMotor.__file__))
+    common_dir = op.abspath(op.dirname(simulatedMotors.__file__))
     flake_check = []
     for dirpath, _, filenames in os.walk(common_dir):
         if dirpath.endswith('tests'):

@@ -15,7 +15,7 @@ except ImportError:
     scm_version = {'write_to': VERSION_FILE_PATH}
 
 
-setup(name='SimulatedMotor',
+setup(name='SimulatedMotors',
       use_scm_version=scm_version,
       author='schaffer',
       author_email='schaffer',
@@ -26,10 +26,10 @@ setup(name='SimulatedMotor',
       packages=find_packages('src'),
       entry_points={
           'karabo.middlelayer_device': [
-              'SimulatedMotor = simulatedMotor.SimulatedMotor:SimulatedMotor',
-              'SimulatedBeckhoffMC2Base = simulatedMotor.SimulatedBeckhoffMC2Base:SimulatedBeckhoffMC2Base',
-              'SimulatedMultiAxisMotor = simulatedMotor.SimulatedMultiAxisMotor:SimulatedMultiAxisMotor',
-              'SimulatedX2TimerML = simulatedMotor.SimulatedX2TimerML:SimulatedX2TimerML'
+              'SimulatedMotor = simulatedMotors.SimulatedMotor:SimulatedMotor',
+              'SimulatedBeckhoffMC2Base = simulatedMotors.SimulatedBeckhoffMC2Base:SimulatedBeckhoffMC2Base',
+              'SimulatedMultiAxisMotor = simulatedMotors.SimulatedMultiAxisMotor:SimulatedMultiAxisMotor',
+              'SimulatedX2TimerML = simulatedMotors.SimulatedX2TimerML:SimulatedX2TimerML'
           ],
       },
       package_data={},
@@ -39,4 +39,4 @@ setup(name='SimulatedMotor',
 
 # copy to subpaths with Karabo class files
 shutil.copy(join(ROOT_FOLDER, '_version.py'),
-            join(ROOT_FOLDER, "src/simulatedMotor"))
+            join(ROOT_FOLDER, "src/simulatedMotors"))

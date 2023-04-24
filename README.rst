@@ -1,6 +1,16 @@
-***********************************
-SimulatedMotor Device (MiddleLayer)
-***********************************
+*************************************
+SimulatedMotors Library (MiddleLayer)
+*************************************
+
+Description
+===========
+simulatedMotors library contains following simulated motors which can easily be used
+in GUI, unit tests etc.
+
+- SimulatedMotor
+- SimulatedBeckhoffMC2Base
+- SimulatedMultiAxisMotor
+- SimulatedX2TimerML
 
 Testing
 =======
@@ -16,14 +26,15 @@ Simply type:
 in the directory of where the ``setup.py`` file is located, or use the ``karabo``
 utility script:
 
-``karabo develop simulatedMotor``
+``karabo develop simulatedMotors``
 
 Running
 =======
 
-If you want to manually start a server using this device, simply type:
+If you want to manually start a server using these devices, simply type:
 
-``karabo-middlelayerserver serverId=middleLayerServer/1 deviceClasses=SimulatedMotor``
+``karabo-middlelayerserver serverId=middleLayerServer/1 
+deviceClasses=SimulatedMotor,SimulatedBeckhoffMC2Base,SimulatedMultiAxisMotor,SimulatedX2TimerML``
 
 Or just use (a properly configured):
 

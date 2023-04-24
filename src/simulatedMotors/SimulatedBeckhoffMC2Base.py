@@ -17,14 +17,14 @@ class SimulatedBeckhoffMC2Base(SimulatedMotor):
 
     targetVelocity = Float(
         displayedName="Target Velocity",
-        defaultValue=1.0,
+        defaultValue=10.0,
         minInc=0.001)
 
     guiUpdateRate = Float(
         displayedName="GUI Update Rate",
-        description="""GUI Update Rate shows how often GUI should show
-        the updates of actualPosition.
-        NOTE: GUI can handle max 2Hz update frequency.""",
+        description="GUI Update Rate shows how often GUI should show"
+                    "the updates of actualPosition."
+                    "NOTE: GUI can handle max 2Hz update frequency.",
         defaultValue=2,
         unitSymbol=Unit.HERTZ,
         minInc=0.1,
@@ -55,7 +55,8 @@ class SimulatedBeckhoffMC2Base(SimulatedMotor):
         except CancelledError:
             pass
         finally:
-            if self.actualPosition != self.targetPosition:
+            if (self.actualPosition != self.targetPosition and
+                    self.state == State.MOVING):
                 # Calculate how many mm distance left to target
                 distance_left = (
                     distance.value -
