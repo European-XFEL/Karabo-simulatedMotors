@@ -17,7 +17,7 @@ class SimulatedBeckhoffMC2Base(SimulatedMotor):
 
     targetVelocity = Float(
         displayedName="Target Velocity",
-        defaultValue=10.0,
+        defaultValue=1.0,
         minInc=0.001)
 
     guiUpdateRate = Float(
@@ -42,16 +42,18 @@ class SimulatedBeckhoffMC2Base(SimulatedMotor):
             # show (t * guiUpdateRate) updates
             # steps = t * guiUpdateRate, where t = distance / velocity
             time_to_reach_target = distance.value / self.targetVelocity.value
-            self.steps = int(time_to_reach_target * self.guiUpdateRate.value)
-            for _ in range(self.steps):
-                if self.state == State.MOVING:
-                    await sleep(1.0 / self.guiUpdateRate.value)
-                    self.actualPosition = (
-                        self.actualPosition.value +
-                        self.targetVelocity.value * direction /
-                        self.guiUpdateRate.value)
-                else:
-                    break
+            if int(time_to_reach_target * self.guiUpdateRate.value) != 0:
+                self.steps = int(
+                    time_to_reach_target * self.guiUpdateRate.value)
+                for _ in range(self.steps):
+                    if self.state == State.MOVING:
+                        await sleep(1.0 / self.guiUpdateRate.value)
+                        self.actualPosition = (
+                            self.actualPosition.value +
+                            self.targetVelocity.value * direction /
+                            self.guiUpdateRate.value)
+                    else:
+                        break
         except CancelledError:
             pass
         finally:
