@@ -16,18 +16,55 @@ motors = {}
 
 
 class CouplingInterface(Configurable):
-    parent = None
+
+    def __init__(self, configuration):
+        super().__init__(configuration=configuration)
+        parent = None
+        self.slaves = set()
+
     isConfigurableAsSlave = Bool(
-        defaultValue=False, accessMode=AccessMode.INITONLY)
-    isMaster = Bool(defaultValue=False,  accessMode=AccessMode.READONLY)
-    isSlave = Bool(defaultValue=False,  accessMode=AccessMode.READONLY)
-    masterDevice = String(accessMode=AccessMode.INITONLY)
-    numerator = Int32(defaultValue=0)
-    denominator = Int32(defaultValue=1)
+        displayedName="Configurable as Slave",
+        description="The motor is configurable as slave in a coordinated "
+                    "motion.",
+        accessMode=AccessMode.INITONLY,
+        defaultValue=False)
+
+    isMaster = Bool(
+        displayedName="is Master",
+        description="The motor is configured as master in a coordinated "
+                    "motion.",
+        accessMode=AccessMode.READONLY,
+        defaultValue=False)
+
+    isSlave = Bool(
+        displayedName="is Slave",
+        description="The motor is configured as slave in a coordinated "
+                    "motion.",
+        accessMode=AccessMode.READONLY,
+        defaultValue=False)
+
+    masterDevice = String(
+        displayedName="Master Device",
+        description="Name of the master device.",
+        accessMode=AccessMode.INITONLY)
+
+    numerator = Int32(
+        displayedName="Ratio Numerator",
+        description="This is the numerator of the coupling ratio. It is "
+                    "valid only if this axis can be coupled.",
+        defaultValue=0)
+
+    denominator = Int32(
+        displayedName="Ratio Denominator",
+        description="This is the denominator of the coupling ratio. It is "
+                    "valid only if this axis can be coupled.",
+        defaultValue=1)
 
     @Slot(
-          displayedName='Couple',
-          allowedStates={State.ON})
+        displayedName="Couple Axis",
+        description="Configure the axis as a slave of the axis indicated in "
+                    "the Master Motor property",
+        allowedStates={State.ON})
     async def couple(self):
         if self.isConfigurableAsSlave:
             if self.masterDevice in motors:
@@ -41,8 +78,10 @@ class CouplingInterface(Configurable):
         raise RuntimeError('Coupling failed')
 
     @Slot(
-          displayedName='Decouple',
-          allowedStates={State.DISABLED})
+        displayedName="Decouple Axis",
+        description="Configure the axis as a slave of the axis indicated in "
+                    "the Master Motor property",
+        allowedStates={State.DISABLED})
     async def decouple(self):
         if self.isConfigurableAsSlave:
             await sleep(2 * self.parent.timeStep.value)
@@ -54,16 +93,6 @@ class CouplingInterface(Configurable):
                     master.coupling.slaves.remove(self.parent.deviceId)
                 master.isMaster = bool(master.coupling.slaves)
             self.parent.state = State.ON
-
-    @property
-    def slaves(self):
-        if not hasattr(self, '_slaves'):
-            self._slaves = set()
-        return self._slaves
-
-    @slaves.setter
-    def slaves(self, value):
-        self._slaves = value
 
 
 class HwLimits(Configurable):
@@ -97,7 +126,7 @@ class SimulatedBeckhoffMC2Base(Device):
 
     interfaces = VectorString(
         displayedName="Interfaces",
-        description="The names of the interfaces device complies with",
+        description="The names of the interfaces the device complies with",
         defaultValue=["Motor"],
         accessMode=AccessMode.READONLY)
 
@@ -161,7 +190,7 @@ class SimulatedBeckhoffMC2Base(Device):
     )
 
     timeStep = Double(
-        displayedName="Time step",
+        displayedName="Time Step",
         defaultValue=0.1,
         unitSymbol=Unit.SECOND,
         accessMode=AccessMode.INITONLY)
@@ -169,7 +198,6 @@ class SimulatedBeckhoffMC2Base(Device):
     def __init__(self, configuration):
         super().__init__(configuration=configuration)
         self.move_task = None
-        self.state = State.ON
         self.max_step = self.targetVelocity * self.timeStep
 
     async def onInitialization(self):
@@ -184,12 +212,13 @@ class SimulatedBeckhoffMC2Base(Device):
         await super().onDestruction()
 
     async def reset(self):
-        if self.move_task:
+        if self.move_task is not None:
             self.move_task.cancel()
             await waitUntil(lambda: self.move_task is None)
             self.state = State.ON
         self.max_step = self.targetVelocity * self.timeStep
         self.actualPosition = 0
+        self.actualTargetPosition = self.actualPosition
         self.targetPosition = 0
         self.coupling.isSlave = False
 
@@ -203,15 +232,21 @@ class SimulatedBeckhoffMC2Base(Device):
         print('step: {}'.format(self.max_step))
         print()
 
-    @Slot(displayedName="Off", allowedStates={State.ON})
+    @Slot(
+        displayedName="Off",
+        allowedStates={State.ON})
     async def off(self):
         self.state = State.OFF
 
-    @Slot(displayedName="On", allowedStates=[State.OFF])
+    @Slot(
+        displayedName="On",
+        allowedStates={State.OFF})
     async def on(self):
         self.state = State.ON
 
-    @Slot(displayedName="Move", allowedStates={State.ON})
+    @Slot(
+        displayedName="Move",
+        allowedStates={State.ON})
     async def move(self):
         self.actualTargetPosition = self.targetPosition
         if self.coupling.isSlave:
@@ -273,9 +308,11 @@ class SimulatedBeckhoffMC2Base(Device):
             self.state = State.ON
             self.move_task = None
 
-    @Slot(displayedName="Stop", allowedStates=[State.ACTIVE, State.MOVING])
+    @Slot(
+        displayedName="Stop",
+        allowedStates={State.MOVING})
     async def stop(self):
-        if self.move_task:
+        if self.move_task is not None:
             self.move_task.cancel()
         await waitUntil(lambda: self.state == State.ON)
 
