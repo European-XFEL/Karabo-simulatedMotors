@@ -171,7 +171,7 @@ class SimulatedBeckhoffMC2Base(Device):
 
     @Double(
         displayedName="Target Velocity",
-        defaultValue=1.0,
+        defaultValue=0.1,
         unitSymbol=Unit.METER_PER_SECOND,
         metricPrefixSymbol=MetricPrefix.MILLI,
         allowedStates={State.OFF, State.ON, State.MOVING})
