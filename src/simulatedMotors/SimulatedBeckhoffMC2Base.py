@@ -284,6 +284,10 @@ class SimulatedBeckhoffMC2Base(Device):
 
                 if self.isOnTarget:
                     self.isOnTarget = False
+                for slave in self.coupling.slaves:
+                    slaveDev = motors[slave]
+                    slaveDev.isOnTarget = False
+
                 await sleep(self.timeStep.value)
 
                 distance = self.targetPosition - self.actualPosition
