@@ -8,7 +8,7 @@ from asyncio import sleep
 from karabo.middlelayer import (
     AccessMode, Bool, Configurable, Device, Double, Int32, MetricPrefix, Node,
     Overwrite, Slot, State, String, Unit, VectorString, background, isSet,
-    waitUntil)
+    unit, waitUntil)
 
 from ._version import version as deviceVersion
 
@@ -172,13 +172,12 @@ class SimulatedBeckhoffMC2Base(Device):
     @Double(
         displayedName="Target Velocity",
         defaultValue=0.1,
-        unitSymbol=Unit.METER_PER_SECOND,
-        metricPrefixSymbol=MetricPrefix.MILLI,
         allowedStates={State.OFF, State.ON, State.MOVING})
     def targetVelocity(self, value):
         self.targetVelocity = value
-        if isSet(self.timeStep):
-            self.max_step = self.targetVelocity * self.timeStep
+        if isSet(value) and isSet(self.timeStep):
+            targetVelocity = self.targetVelocity * unit.mm / unit.s
+            self.max_step = targetVelocity * self.timeStep
 
     coupling = Node(
         CouplingInterface,
@@ -199,13 +198,13 @@ class SimulatedBeckhoffMC2Base(Device):
     def __init__(self, configuration):
         super().__init__(configuration=configuration)
         self.move_task = None
-        self.max_step = self.targetVelocity * self.timeStep
 
     async def onInitialization(self):
         motors[self.deviceId] = self
         await super().onInitialization()
         self.actualTargetPosition = self.actualPosition
-        self.max_step = self.targetVelocity * self.timeStep
+        targetVelocity = self.targetVelocity * unit.mm / unit.s
+        self.max_step = targetVelocity * self.timeStep
 
     async def onDestruction(self):
         motors.pop(self.deviceId, None)
