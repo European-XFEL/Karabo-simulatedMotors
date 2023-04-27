@@ -7,8 +7,8 @@ from asyncio import sleep
 
 from karabo.middlelayer import (
     AccessMode, Bool, Configurable, Device, Double, Int32, MetricPrefix, Node,
-    Overwrite, Slot, State, String, Unit, VectorString, background, isSet,
-    unit, waitUntil)
+    Overwrite, QuantityValue, Slot, State, String, Unit, VectorString,
+    background, isSet, get_timestamp, unit, waitUntil)
 
 from ._version import version as deviceVersion
 
@@ -264,6 +264,7 @@ class SimulatedBeckhoffMC2Base(Device):
             distance = self.targetPosition - self.actualPosition
             hwOk = True
             while hwOk and abs(distance) > self.max_step:
+                now = get_timestamp()
                 hwOk = self.checkHwLimits()
                 slave_motors = [
                     motors[slave] for slave in self.coupling.slaves]
@@ -274,12 +275,18 @@ class SimulatedBeckhoffMC2Base(Device):
                     step = self.max_step
                 else:
                     step = -self.max_step
-                self.actualPosition += step
+
+                self.actualPosition = QuantityValue(
+                    self.actualPosition + step,
+                    timestamp=now)
+
                 for slave in self.coupling.slaves:
                     slaveDev = motors[slave]
                     coupling = slaveDev.coupling
                     ratio = coupling.numerator / coupling.denominator
-                    slaveDev.actualPosition += step * ratio
+                    slaveDev.actualPosition = QuantityValue(
+                        slaveDev.actualPosition + step * ratio,
+                        timestamp=now)
 
                 if self.isOnTarget:
                     self.isOnTarget = False
@@ -291,6 +298,7 @@ class SimulatedBeckhoffMC2Base(Device):
 
                 distance = self.targetPosition - self.actualPosition
 
+            now = get_timestamp()
             hwOk = self.checkHwLimits()
             if hwOk:
                 for slave in self.coupling.slaves:
@@ -298,8 +306,13 @@ class SimulatedBeckhoffMC2Base(Device):
                     coupling = slaveDev.coupling
                     ratio = coupling.numerator / coupling.denominator
                     step = self.targetPosition - self.actualPosition
-                    slaveDev.actualPosition += step * ratio
-                self.actualPosition = self.targetPosition
+                    slaveDev.actualPosition = QuantityValue(
+                        slaveDev.actualPosition + step * ratio,
+                        timestamp=now)
+
+                self.actualPosition = QuantityValue(
+                    self.targetPosition,
+                    timestamp=now)
 
                 if not self.isOnTarget:
                     self.isOnTarget = True
