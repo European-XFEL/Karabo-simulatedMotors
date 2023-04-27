@@ -19,7 +19,6 @@ class CouplingInterface(Configurable):
 
     def __init__(self, configuration):
         super().__init__(configuration=configuration)
-        parent = None
         self.slaves = set()
 
     isConfigurableAsSlave = Bool(
@@ -68,12 +67,13 @@ class CouplingInterface(Configurable):
     async def couple(self):
         if self.isConfigurableAsSlave:
             if self.masterDevice in motors:
-                await sleep(2 * self.parent.timeStep.value)
+                root = self.get_root()
+                await sleep(2 * root.timeStep.value)
                 master = motors[self.masterDevice]
-                master.coupling.slaves.add(self.parent.deviceId)
+                master.coupling.slaves.add(root.deviceId)
                 master.coupling.isMaster = True
                 self.isSlave = True
-                self.parent.state = State.DISABLED
+                root.state = State.DISABLED
                 return
         raise RuntimeError('Coupling failed')
 
@@ -84,15 +84,16 @@ class CouplingInterface(Configurable):
         allowedStates={State.DISABLED})
     async def decouple(self):
         if self.isConfigurableAsSlave:
-            await sleep(2 * self.parent.timeStep.value)
+            root = self.get_root()
+            await sleep(2 * root.timeStep.value)
             if self.isSlave:
                 self.isSlave = False
             if self.masterDevice in motors:
                 master = motors[self.masterDevice]
-                if self.parent.deviceId in master.coupling.slaves:
-                    master.coupling.slaves.remove(self.parent.deviceId)
+                if root.deviceId in master.coupling.slaves:
+                    master.coupling.slaves.remove(root.deviceId)
                 master.isMaster = bool(master.coupling.slaves)
-            self.parent.state = State.ON
+            root.state = State.ON
 
 
 class HwLimits(Configurable):
@@ -201,7 +202,6 @@ class SimulatedBeckhoffMC2Base(Device):
         self.max_step = self.targetVelocity * self.timeStep
 
     async def onInitialization(self):
-        self.coupling.parent = self
         motors[self.deviceId] = self
         await super().onInitialization()
         self.actualTargetPosition = self.actualPosition
