@@ -5,10 +5,12 @@
 #############################################################################
 from asyncio import sleep
 
+from numpy import copysign
+
 from karabo.middlelayer import (
     AccessMode, Bool, Configurable, Device, Double, Int32, MetricPrefix, Node,
     Overwrite, QuantityValue, Slot, State, String, Unit, VectorString,
-    background, isSet, get_timestamp, unit, waitUntil)
+    background, get_timestamp, isSet, unit, waitUntil)
 
 from ._version import version as deviceVersion
 
@@ -261,23 +263,28 @@ class SimulatedBeckhoffMC2Base(Device):
 
     async def move_action(self):
         try:
-            distance = self.targetPosition - self.actualPosition
             hwOk = True
-            while hwOk and abs(distance) > self.max_step:
+            while hwOk:
+                distance = self.actualTargetPosition - self.actualPosition
                 now = get_timestamp()
+
                 hwOk = self.checkHwLimits()
                 slave_motors = [
                     motors[slave] for slave in self.coupling.slaves]
                 if any([not motor.checkHwLimits() for motor in slave_motors]):
                     hwOk = False
 
-                if distance.value > 0:
-                    step = self.max_step
+                last = abs(distance) <= self.max_step
+
+                if last:
+                    new_position = self.actualTargetPosition
+                    step = new_position - self.actualPosition
                 else:
-                    step = -self.max_step
+                    step = copysign(self.max_step, distance)
+                    new_position = self.actualPosition + step
 
                 self.actualPosition = QuantityValue(
-                    self.actualPosition + step,
+                    new_position,
                     timestamp=now)
 
                 for slave in self.coupling.slaves:
@@ -288,37 +295,15 @@ class SimulatedBeckhoffMC2Base(Device):
                         slaveDev.actualPosition + step * ratio,
                         timestamp=now)
 
-                if self.isOnTarget:
-                    self.isOnTarget = False
+                if self.isOnTarget != last:
+                    self.isOnTarget = last
                 for slave in self.coupling.slaves:
                     slaveDev = motors[slave]
-                    slaveDev.isOnTarget = False
+                    if self.isOnTarget != last:
+                        slaveDev.isOnTarget = last
 
-                await sleep(self.timeStep.value)
-
-                distance = self.targetPosition - self.actualPosition
-
-            now = get_timestamp()
-            hwOk = self.checkHwLimits()
-            if hwOk:
-                for slave in self.coupling.slaves:
-                    slaveDev = motors[slave]
-                    coupling = slaveDev.coupling
-                    ratio = coupling.numerator / coupling.denominator
-                    step = self.targetPosition - self.actualPosition
-                    slaveDev.actualPosition = QuantityValue(
-                        slaveDev.actualPosition + step * ratio,
-                        timestamp=now)
-
-                self.actualPosition = QuantityValue(
-                    self.targetPosition,
-                    timestamp=now)
-
-                if not self.isOnTarget:
-                    self.isOnTarget = True
-                for slave in self.coupling.slaves:
-                    slaveDev = motors[slave]
-                    slaveDev.isOnTarget = True
+                if last:
+                    break
 
                 await sleep(self.timeStep.value)
 
