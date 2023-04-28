@@ -248,7 +248,9 @@ class SimulatedBeckhoffMC2Base(Device):
         displayedName="Move",
         allowedStates={State.ON})
     async def move(self):
-        self.actualTargetPosition = self.targetPosition
+        self.actualTargetPosition = QuantityValue(
+            self.targetPosition,
+            timestamp=get_timestamp())
         if self.coupling.isSlave:
             return
         if not self.move_task:
