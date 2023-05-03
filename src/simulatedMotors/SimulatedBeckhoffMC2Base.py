@@ -259,7 +259,7 @@ class SimulatedBeckhoffMC2Base(Device):
         await self.perform_relative_move(self.stepSize)
 
     async def perform_relative_move(self, step_size):
-        target_position = self.actualTargetPosition + self.stepSize
+        target_position = self.actualTargetPosition + step_size
         await self.perform_move(target_position)
 
     @Slot(
