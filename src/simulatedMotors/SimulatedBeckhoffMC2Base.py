@@ -140,6 +140,13 @@ class SimulatedBeckhoffMC2Base(Device):
         metricPrefixSymbol=MetricPrefix.MILLI,
         accessMode=AccessMode.READONLY)
 
+    stepSize = Double(
+        displayedName="Step Size",
+        defaultValue=0,
+        unitSymbol=Unit.METER,
+        metricPrefixSymbol=MetricPrefix.MILLI,
+        allowedStates={State.OFF, State.ON, State.MOVING})
+
     targetPosition = Double(
         displayedName="Target Position",
         defaultValue=0,
@@ -246,16 +253,29 @@ class SimulatedBeckhoffMC2Base(Device):
         self.state = State.ON
 
     @Slot(
+        displayedName="Move Relative",
+        allowedStates={State.ON})
+    async def moveRelative(self):
+        await self.perform_relative_move(self.stepSize)
+
+    async def perform_relative_move(self, step_size):
+        target_position = self.actualTargetPosition + self.stepSize
+        await self.perform_move(target_position)
+
+    @Slot(
         displayedName="Move",
         allowedStates={State.ON})
     async def move(self):
+        await self.perform_move(self.targetPosition)
+
+    async def perform_move(self, target_position):
         self.actualTargetPosition = QuantityValue(
-            self.targetPosition,
+            target_position,
             timestamp=get_timestamp())
         if self.coupling.isSlave:
             return
         if not self.move_task:
-            if self.targetPosition != self.actualPosition:
+            if self.actualTargetPosition != self.actualPosition:
                 self.move_task = background(self.move_action())
                 self.state = State.MOVING
             else:
@@ -318,6 +338,22 @@ class SimulatedBeckhoffMC2Base(Device):
         if self.move_task is not None:
             self.move_task.cancel()
         await waitUntil(lambda: self.state == State.ON)
+
+    @Slot(
+        displayedName="Step Up",
+        allowedStates={State.ON})
+    async def stepUp(self):
+        if self.stepSize.value < 0:
+            self.stepSize = -self.stepSize.value
+        await self.perform_relative_move(self.stepSize)
+
+    @Slot(
+        displayedName="Step Down",
+        allowedStates={State.ON})
+    async def stepDown(self):
+        if self.stepSize.value > 0:
+            self.stepSize = -self.stepSize.value
+        await self.perform_relative_move(self.stepSize)
 
     def checkHwLimits(self):
         hwLimits = self.hwLimits
