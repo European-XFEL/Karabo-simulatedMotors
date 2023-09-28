@@ -5,7 +5,7 @@
 #############################################################################
 from contextlib import contextmanager
 
-from karabo.middlelayer_api.tests.eventloop import DeviceTest, async_tst
+from karabo.middlelayer.testing import DeviceTest, async_tst
 
 from ..SimulatedMotor import SimulatedMotor
 
