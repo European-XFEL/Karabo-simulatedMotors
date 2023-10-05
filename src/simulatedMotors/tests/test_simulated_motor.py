@@ -5,6 +5,7 @@
 #############################################################################
 from contextlib import contextmanager
 
+from karabo.middlelayer import State
 from karabo.middlelayer.testing import DeviceTest, async_tst
 
 from ..SimulatedMotor import SimulatedMotor
@@ -12,7 +13,6 @@ from ..SimulatedMotor import SimulatedMotor
 conf = {
     "classId": "SimulatedMotor",
     "_deviceId_": "TestSimulatedMotor",
-    "greeting": "buongiorno"
 }
 
 
@@ -25,9 +25,5 @@ class TestSimulatedMotor(DeviceTest):
             yield
 
     @async_tst
-    async def test_greet(self):
-        for greet in ("Buongiorno", "Guten Tag", "Moin Moin"):
-            self.dev.greeting = greet
-            self.assertEqual(self.dev.greeting.value, greet)
-            await self.dev.hello()
-            self.assertEqual(self.dev.greeting.value, "Hello world!")
+    async def test_instantiation(self):
+        self.assertEqual(self.dev.state, State.ON)
