@@ -93,7 +93,7 @@ class SimulatedMotor(Device):
     async def move(self):
         if self.targetPosition.value != self.actualPosition.value:
             self.state = State.MOVING
-            background(self.move_action)
+            self.move_task = background(self.move_action)
 
     async def move_action(self):
         try:
@@ -104,7 +104,7 @@ class SimulatedMotor(Device):
                     self.actualPosition += step_size
                     await sleep(1 / self.updateRate.value)
                 else:
-                    break
+                    return
         except CancelledError:
             pass
         finally:
@@ -116,4 +116,5 @@ class SimulatedMotor(Device):
         allowedStates=[State.MOVING]
     )
     async def stop(self):
+        self.move_task.cancel()
         self.state = State.ON
