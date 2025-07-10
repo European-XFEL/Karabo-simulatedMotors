@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools-scm[toml]>=6.4", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+root = "."
+write_to = "src/simulatedMotors/_version.py"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.entry-points."karabo.middlelayer_device"]
+SimulatedMotor = "simulatedMotors.SimulatedMotor:SimulatedMotor"
+SimulatedBeckhoffMC2Base = "simulatedMotors.SimulatedBeckhoffMC2Base:SimulatedBeckhoffMC2Base"
+SimulatedMultiAxisMotor = "simulatedMotors.SimulatedMultiAxisMotor:SimulatedMultiAxisMotor"
+SimulatedX2TimerML = "simulatedMotors.SimulatedX2TimerML:SimulatedX2TimerML"
+
+[project]
+dynamic = ["version"]
+name = "SimulatedMotors"
+authors = [
+    {name = "Controls group"},
+]
+description = ""
+readme = "README.rst"
+dependencies = []

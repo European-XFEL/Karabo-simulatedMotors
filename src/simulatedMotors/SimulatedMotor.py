@@ -75,7 +75,8 @@ class SimulatedMotor(Device):
         unitSymbol=Unit.HERTZ)
 
     def __init__(self, configuration):
-        super(SimulatedMotor, self).__init__(configuration)
+        super().__init__(configuration)
+        self.move_task = None
 
     async def onInitialization(self):
         """ This method will be called when the device starts.
