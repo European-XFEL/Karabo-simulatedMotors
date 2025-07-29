@@ -12,7 +12,7 @@ from ..SimulatedMotor import SimulatedMotor
 
 conf = {
     "classId": "SimulatedMotor",
-    "_deviceId_": "TestSimulatedMotor",
+    "deviceId": "TestSimulatedMotor",
 }
 
 
