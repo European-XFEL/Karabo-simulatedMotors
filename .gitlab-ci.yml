@@ -1,3 +1,6 @@
+variables:
+  USE_LEGACY_PYTEST: "false"
+
 include:
   - project: karabo/gitlabci
     file: .python-ci.yml
