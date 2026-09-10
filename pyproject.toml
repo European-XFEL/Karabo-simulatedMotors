@@ -19,8 +19,11 @@ SimulatedX2TimerML = "simulatedMotors.SimulatedX2TimerML:SimulatedX2TimerML"
 dynamic = ["version"]
 name = "SimulatedMotors"
 authors = [
-    {name = "Controls group"},
+    {name = "European XFEL GmbH", email = "opensource@xfel.eu"},
 ]
+maintainers = [
+    {name = "David Hickin", email="david.hickin@xfel.eu" },
+    {name = "Gabriele Giovanetti", email="gabriele.giovanetti@xfel.eu" }]
 description = ""
 readme = "README.rst"
 dependencies = []
