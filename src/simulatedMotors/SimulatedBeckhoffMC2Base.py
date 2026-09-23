@@ -10,7 +10,7 @@ from numpy import copysign
 from karabo.middlelayer import (
     AccessMode, Bool, Configurable, Device, Double, Int32, MetricPrefix, Node,
     Overwrite, QuantityValue, Slot, State, String, Unit, VectorString,
-    background, get_timestamp, isSet, unit, waitUntil)
+    background, get_timestamp, isSet, unit)
 
 from ._version import version as deviceVersion
 
@@ -222,7 +222,6 @@ class SimulatedBeckhoffMC2Base(Device):
     async def reset(self):
         if self.move_task is not None:
             self.move_task.cancel()
-            await waitUntil(lambda: self.move_task is None)
             self.state = State.ON
         self.max_step = self.targetVelocity * self.timeStep
         self.actualPosition = 0
@@ -259,7 +258,7 @@ class SimulatedBeckhoffMC2Base(Device):
         await self.perform_relative_move(self.stepSize)
 
     async def perform_relative_move(self, step_size):
-        target_position = self.actualTargetPosition + step_size
+        target_position = self.actualPosition + step_size
         await self.perform_move(target_position)
 
     @Slot(
@@ -335,9 +334,11 @@ class SimulatedBeckhoffMC2Base(Device):
         displayedName="Stop",
         allowedStates={State.MOVING})
     async def stop(self):
+        self.state = State.STOPPING
         if self.move_task is not None:
             self.move_task.cancel()
-        await waitUntil(lambda: self.state == State.ON)
+            self.move_task = None
+        self.actualTargetPositon = self.actualPosition
 
     @Slot(
         displayedName="Step Up",
